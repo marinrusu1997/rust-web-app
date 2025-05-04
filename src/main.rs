@@ -2,13 +2,16 @@
 
 // region:    --- Modules
 
+mod config;
 mod ctx;
 mod error;
 mod log;
 mod model;
 mod web;
 
-pub use self::error::Result;
+// Re-exports
+pub use self::config::config;
+pub use self::error::{Error, Result};
 
 use crate::model::ModelManager;
 use crate::web::mw_auth::mw_ctx_resolve;
@@ -18,11 +21,16 @@ use axum::{middleware, Router};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
-
+use tracing::info;
+use tracing_subscriber::EnvFilter;
 // endregion: --- Modules
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
+
     // Initialize ModelManager.
     let mm = ModelManager::new().await?;
 
@@ -43,7 +51,7 @@ async fn main() -> Result<()> {
     let listener = TcpListener::bind(addr)
         .await
         .expect(&format!("Failed to bind on {}", addr));
-    println!("Listening on {}", addr);
+    info!("Listening on {}", addr);
 
     axum::serve(listener, routes_all).await.unwrap();
     // endregion: --- Start Server

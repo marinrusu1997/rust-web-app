@@ -8,10 +8,11 @@ use axum::middleware::Next;
 use axum::response::Response;
 use serde::Serialize;
 use tower_cookies::{Cookie, Cookies};
+use tracing::debug;
 
 #[allow(dead_code)] // For now, until we have the rpc.
 pub async fn mw_ctx_require(ctx: Result<Ctx>, req: Request, next: Next) -> Result<Response> {
-    println!("->> {:<12} - mw_ctx_require - {ctx:?}", "MIDDLEWARE");
+    debug!("{:<12} - mw_ctx_require - {ctx:?}", "MIDDLEWARE");
 
     ctx?;
 
@@ -24,7 +25,7 @@ pub async fn mw_ctx_resolve(
     mut req: Request,
     next: Next,
 ) -> Result<Response> {
-    println!("->> {:<12} - mw_ctx_resolve", "MIDDLEWARE");
+    debug!("{:<12} - mw_ctx_resolve", "MIDDLEWARE");
 
     let auth_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
 
@@ -46,7 +47,7 @@ pub async fn mw_ctx_resolve(
 impl<S: Send + Sync> OptionalFromRequestParts<S> for Ctx {
     type Rejection = Error;
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Option<Self>> {
-        println!("->> {:<12} - Ctx", "EXTRACTOR");
+        debug!("{:<12} - Ctx", "EXTRACTOR");
 
         parts
             .extensions

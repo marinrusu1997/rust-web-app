@@ -1,0 +1,5 @@
+[env]
+RUST_LOG = "rust_web_app=debug"
+
+## -- ConfigMap
+SERVICE_WEB_FOLDER = "web-folder/"
