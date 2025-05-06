@@ -1,5 +1,8 @@
 [env]
 RUST_LOG = "rust_web_app=debug"
 
+## -- Secrets
+SERVICE_DB_URL = "postgres://app_user:dev_only_pwd@localhost/app_db"
+
 ## -- ConfigMap
 SERVICE_WEB_FOLDER = "web-folder/"

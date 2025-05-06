@@ -12,6 +12,9 @@ pub fn config() -> &'static Config {
 
 #[allow(non_snake_case)]
 pub struct Config {
+    // -- Db
+    pub DB_URL: String,
+
     // -- Web
     pub WEB_FOLDER: String,
 }
@@ -19,6 +22,7 @@ pub struct Config {
 impl Config {
     fn load_from_env() -> Result<Self> {
         Ok(Self {
+            DB_URL: get_env("SERVICE_DB_URL")?,
             WEB_FOLDER: get_env("SERVICE_WEB_FOLDER")?,
         })
     }
