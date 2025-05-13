@@ -12,7 +12,7 @@ pub type Db = Pool<Postgres>;
 pub async fn new_db_pool() -> Result<Db> {
     PgPoolOptions::new()
         .max_connections(5)
-        .acquire_timeout(Duration::from_secs(10))
+        .acquire_timeout(Duration::from_secs(15))
         .connect(&config().DB_URL)
         .await
         .map_err(|e| Error::FailedToCreatePool(e.to_string()))
