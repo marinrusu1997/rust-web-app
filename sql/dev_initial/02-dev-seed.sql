@@ -1,3 +1,3 @@
 -- name: insert-demo-user
-INSERT INTO "user" (username)
-VALUES ('demo1');
+INSERT INTO "user" (username, password)
+VALUES ('demo1', 'password1');

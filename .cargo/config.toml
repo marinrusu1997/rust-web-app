@@ -3,6 +3,9 @@ RUST_LOG = "rust_web_app=debug"
 
 ## -- Secrets
 SERVICE_DB_URL = "postgres://app_user:dev_only_pwd@localhost/app_db"
+SERVICE_PASSWORD_KEY = "Nbh6IdYlREfz41HjWFqfuEFxyXt7Z7WdouzkA0-gYnbPO3jRWz2VJIdby8o6fxjyHKFJSq5BjtPlC5lgHIk1oQ"
+SERVICE_TOKEN_KEY = "09q95b4tH5CntBLY2zaVB41pfyhlkrysPdRESFrJrLgLqmortKxKgXcdGLInIS8Kv8dP_fSoGLSdxsjO6JGCUg"
+SERVICE_TOKEN_DURATION_SEC = "1800" # 30 min
 
 ## -- ConfigMap
 SERVICE_WEB_FOLDER = "web-folder/"

@@ -1,3 +1,6 @@
+use crate::ctx::Ctx;
+use crate::model::user::{User, UserBmc};
+use crate::model::ModelManager;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::fs;
@@ -14,6 +17,8 @@ const PG_DEV_APP_URL: &str = "postgres://app_user:dev_only_pwd@localhost/app_db"
 // sql files
 const SQL_RECREATE_DB: &str = "sql/dev_initial/00-recreate-db.sql";
 const SQL_DIR: &str = "sql/dev_initial";
+
+const DEMO_PASSWORD: &str = "demo1";
 
 pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
     info!("{:<12} - Initializing dev db", "FOR-DEV-ONLY");
@@ -38,6 +43,14 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+
+    let mm = ModelManager::new().await?;
+    let ctx = Ctx::root_ctx();
+
+    let demo1_user: User = UserBmc::first_by_username(&ctx, &mm, "demo1")
+        .await?
+        .unwrap();
+    UserBmc::update_password(&ctx, &mm, demo1_user.id, DEMO_PASSWORD).await?;
 
     Ok(())
 }

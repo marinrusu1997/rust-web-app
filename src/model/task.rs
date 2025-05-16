@@ -2,17 +2,23 @@ use super::error::{Error, Result};
 use crate::ctx::Ctx;
 use crate::model::base::DbBmc;
 use crate::model::{base, ModelManager};
+use modql::field::Fields;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-#[derive(Debug, Clone, FromRow, Serialize)]
+#[derive(Debug, Clone, FromRow, Fields, Serialize)]
 pub struct Task {
     pub id: i64,
     pub title: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Fields)]
 pub struct TaskForCreate {
+    pub title: String,
+}
+
+#[derive(Deserialize, Fields)]
+pub struct TaskForUpdate {
     pub title: String,
 }
 
@@ -23,17 +29,8 @@ impl DbBmc for TaskBmc {
 }
 
 impl TaskBmc {
-    pub async fn create(_ctx: &Ctx, mm: &ModelManager, task_c: TaskForCreate) -> Result<i64> {
-        let db = mm.db();
-        let (id,) = sqlx::query_as::<_, (i64,)>(&format!(
-            "INSERT INTO {} (title) VALUES ($1) RETURNING id",
-            Self::TABLE_NAME
-        ))
-        .bind(task_c.title)
-        .fetch_one(db)
-        .await?;
-
-        Ok(id)
+    pub async fn create(ctx: &Ctx, mm: &ModelManager, task_c: TaskForCreate) -> Result<i64> {
+        base::create::<Self, _>(ctx, mm, task_c).await
     }
 
     pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Task> {
@@ -44,26 +41,13 @@ impl TaskBmc {
         base::list::<Self, _>(ctx, mm).await
     }
 
-    pub async fn update(_ctx: &Ctx, mm: &ModelManager, task: Task) -> Result<()> {
-        let db = mm.db();
-        let count = sqlx::query(&format!(
-            "UPDATE {} SET title = $1 WHERE id = $2",
-            Self::TABLE_NAME
-        ))
-        .bind(task.title)
-        .bind(task.id)
-        .execute(db)
-        .await?
-        .rows_affected();
-
-        if count == 0 {
-            return Err(Error::EntityNotFound {
-                entity: Self::TABLE_NAME,
-                id: task.id,
-            });
-        }
-
-        Ok(())
+    pub async fn update(
+        ctx: &Ctx,
+        mm: &ModelManager,
+        id: i64,
+        task_u: TaskForUpdate,
+    ) -> Result<()> {
+        base::update::<Self, _>(ctx, mm, id, task_u).await
     }
 
     pub async fn delete(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
@@ -75,7 +59,7 @@ impl TaskBmc {
 mod tests {
     use crate::_dev_utils;
     use crate::ctx::Ctx;
-    use crate::model::task::{Task, TaskBmc, TaskForCreate};
+    use crate::model::task::{Task, TaskBmc, TaskForCreate, TaskForUpdate};
     use anyhow::Result;
     use serial_test::serial;
 
@@ -141,8 +125,10 @@ mod tests {
         assert_eq!(task.title, fx_title);
 
         fx_title = "test_update_ok title";
-        task.title = fx_title.to_string();
-        TaskBmc::update(&ctx, &mm, task).await?;
+        let task_c = TaskForUpdate {
+            title: fx_title.to_string(),
+        };
+        TaskBmc::update(&ctx, &mm, task.id, task_c).await?;
 
         let task = TaskBmc::get(&ctx, &mm, id).await?;
         assert_eq!(task.title, fx_title);
@@ -181,12 +167,11 @@ mod tests {
         let ctx = Ctx::root_ctx();
 
         let task_id = 100;
-        let task = Task {
-            id: task_id,
+        let task_u = TaskForUpdate {
             title: "test_update_not_found title".to_string(),
         };
 
-        let result = TaskBmc::update(&ctx, &mm, task).await;
+        let result = TaskBmc::update(&ctx, &mm, task_id, task_u).await;
         assert!(
             matches!(
                 result,
