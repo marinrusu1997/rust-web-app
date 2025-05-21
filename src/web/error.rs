@@ -1,5 +1,5 @@
 use crate::web::Error::LoginFailPasswordMismatch;
-use crate::{model, web};
+use crate::{crypt, model, web};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use derive_more::From;
@@ -23,6 +23,8 @@ pub enum Error {
     // -- Modules
     #[from]
     Model(model::Error),
+    #[from]
+    Crypt(crypt::Error),
 }
 
 // region:    --- Axum IntoResponse

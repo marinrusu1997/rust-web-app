@@ -1,5 +1,6 @@
 mod error;
 pub mod password;
+pub mod token;
 
 pub use error::{Error, Result};
 use hmac::{Hmac, KeyInit, Mac};

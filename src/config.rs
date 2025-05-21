@@ -16,7 +16,7 @@ pub struct Config {
     // -- Crypto
     pub PASSWORD_KEY: Vec<u8>,
     pub TOKEN_KEY: Vec<u8>,
-    pub TOKEN_DURATION_SEC: i64,
+    pub TOKEN_DURATION_SEC: f64,
 
     // -- Db
     pub DB_URL: String,
