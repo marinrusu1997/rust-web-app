@@ -2,13 +2,13 @@ use crate::crypt::{password, EncryptContent};
 use crate::ctx::Ctx;
 use crate::model::user::{UserBmc, UserForLogin};
 use crate::model::ModelManager;
-use crate::web::{self, remove_token_cookie, set_token_cookie, Error, Result};
+use crate::web::{remove_token_cookie, set_token_cookie, Error, Result};
 use axum::extract::State;
 use axum::routing::post;
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::Cookies;
 use tracing::debug;
 
 pub fn routes(mm: ModelManager) -> Router {

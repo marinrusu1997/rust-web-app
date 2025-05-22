@@ -1,4 +1,3 @@
-use crate::web::Error::LoginFailPasswordMismatch;
 use crate::{crypt, model, web};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -76,7 +75,6 @@ impl Error {
     pub fn client_status_and_error(&self) -> (StatusCode, ClientError) {
         use web::Error::*;
 
-        #[allow(unreachable_patterns)]
         match self {
             // -- Login
             LoginFailUsernameNotFound | LoginFailPasswordMismatch { .. } => {

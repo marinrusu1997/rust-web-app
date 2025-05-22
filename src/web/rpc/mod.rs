@@ -10,6 +10,7 @@ use serde::Deserialize;
 use serde_json::{from_value, json, to_value, Value};
 use tracing::debug;
 
+mod params;
 mod task_rpc;
 
 #[derive(Deserialize, Debug)]
@@ -17,22 +18,6 @@ struct RpcRequest {
     id: Option<Value>,
     method: String,
     params: Option<Value>,
-}
-
-#[derive(Deserialize)]
-pub struct ParamsForCreate<D> {
-    data: D,
-}
-
-#[derive(Deserialize)]
-pub struct ParamsForUpdate<D> {
-    id: i64,
-    data: D,
-}
-
-#[derive(Deserialize)]
-pub struct ParamsIded {
-    id: i64,
 }
 
 #[derive(Debug, Clone)]
@@ -88,7 +73,7 @@ async fn rpc_handler_inner(ctx: Ctx, mm: ModelManager, rpc_req: RpcRequest) -> R
 
     let result_json: Value = match rpc_req.method.as_str() {
         "create_task" => exec_rpc_fn!(create_task, ctx, mm, rpc_req.params),
-        "list_tasks" => exec_rpc_fn!(list_tasks, ctx, mm),
+        "list_tasks" => exec_rpc_fn!(list_tasks, ctx, mm, rpc_req.params),
         "update_task" => exec_rpc_fn!(update_task, ctx, mm, rpc_req.params),
         "delete_task" => exec_rpc_fn!(delete_task, ctx, mm, rpc_req.params),
 

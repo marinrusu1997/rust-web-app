@@ -6,7 +6,7 @@ use sqlx::{Pool, Postgres};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
-use tracing::{debug, info};
+use tracing::info;
 
 type Db = Pool<Postgres>;
 

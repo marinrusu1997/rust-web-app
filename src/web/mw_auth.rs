@@ -12,7 +12,6 @@ use serde::Serialize;
 use tower_cookies::{Cookie, Cookies};
 use tracing::debug;
 
-#[allow(dead_code)] // For now, until we have the rpc.
 pub async fn mw_ctx_require(ctx: Result<Ctx>, req: Request, next: Next) -> Result<Response> {
     debug!("{:<12} - mw_ctx_require - {ctx:?}", "MIDDLEWARE");
 
@@ -64,7 +63,7 @@ async fn ctx_resolve(mm: State<ModelManager>, cookies: &Cookies) -> CtxExtResult
 // region:    --- Ctx Extractor
 impl<S: Send + Sync> FromRequestParts<S> for Ctx {
     type Rejection = Error;
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
         debug!("{:<12} - Ctx Required", "EXTRACTOR");
 
         parts
@@ -79,14 +78,15 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 impl<S: Send + Sync> OptionalFromRequestParts<S> for Ctx {
     type Rejection = Error;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Option<Self>> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Option<Self>> {
         debug!("{:<12} - Ctx Optional", "EXTRACTOR");
 
         let ctx_ext_result = parts.extensions.get::<CtxExtResult>();
 
         if let Some(ctx_ext_result) = ctx_ext_result {
-            let ctx = ctx_ext_result.clone().map_err(Error::CtxExt)?;
-            return Ok(Some(ctx));
+            if let Ok(ctx_ext_result) = ctx_ext_result {
+                return Ok(Some(ctx_ext_result.clone()));
+            }
         }
 
         Ok(None)

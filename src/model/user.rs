@@ -18,14 +18,10 @@ pub struct User {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct UserForCreate {
     pub username: String,
     pub password: String,
-}
-
-struct UserForInsert {
-    username: String,
-    password: String,
 }
 
 #[derive(FromRow, Fields)]
@@ -71,7 +67,7 @@ impl UserBmc {
     }
 
     pub async fn first_by_username<E>(
-        ctx: &Ctx,
+        _ctx: &Ctx,
         mm: &ModelManager,
         username: &str,
     ) -> Result<Option<E>>
