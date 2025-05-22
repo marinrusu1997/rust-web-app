@@ -4,7 +4,7 @@ use crate::model::user::{UserBmc, UserForAuth};
 use crate::model::ModelManager;
 use crate::web::{set_token_cookie, AUTH_TOKEN};
 use crate::web::{Error, Result};
-use axum::extract::{OptionalFromRequestParts, Request, State};
+use axum::extract::{FromRequestParts, OptionalFromRequestParts, Request, State};
 use axum::http::request::Parts;
 use axum::middleware::Next;
 use axum::response::Response;
@@ -62,10 +62,10 @@ async fn ctx_resolve(mm: State<ModelManager>, cookies: &Cookies) -> CtxExtResult
 }
 
 // region:    --- Ctx Extractor
-impl<S: Send + Sync> OptionalFromRequestParts<S> for Ctx {
+impl<S: Send + Sync> FromRequestParts<S> for Ctx {
     type Rejection = Error;
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Option<Self>> {
-        debug!("{:<12} - Ctx", "EXTRACTOR");
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self> {
+        debug!("{:<12} - Ctx Required", "EXTRACTOR");
 
         parts
             .extensions
@@ -73,9 +73,26 @@ impl<S: Send + Sync> OptionalFromRequestParts<S> for Ctx {
             .ok_or(Error::CtxExt(CtxExtError::CtxNotInRequestExt))?
             .clone()
             .map_err(Error::CtxExt)
-            .map(Some)
     }
 }
+
+impl<S: Send + Sync> OptionalFromRequestParts<S> for Ctx {
+    type Rejection = Error;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Option<Self>> {
+        debug!("{:<12} - Ctx Optional", "EXTRACTOR");
+
+        let ctx_ext_result = parts.extensions.get::<CtxExtResult>();
+
+        if let Some(ctx_ext_result) = ctx_ext_result {
+            let ctx = ctx_ext_result.clone().map_err(Error::CtxExt)?;
+            return Ok(Some(ctx));
+        }
+
+        Ok(None)
+    }
+}
+
 // endregion: --- Ctx Extractor
 
 // region:    --- Ctx Extractor Result/Error

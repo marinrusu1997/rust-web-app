@@ -4,13 +4,25 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use derive_more::From;
 use serde::Serialize;
+use serde_with::{serde_as, DisplayFromStr};
 use std::sync::Arc;
 use tracing::debug;
 
 pub type Result<T> = core::result::Result<T, Error>;
+
+#[serde_as]
 #[derive(Debug, Serialize, From, strum_macros::AsRefStr)]
 #[serde(tag = "type", content = "data")]
 pub enum Error {
+    // -- RPC
+    RpcMethodUnknown(String),
+    RpcMissingParams {
+        method: String,
+    },
+    RpcFailJsonParams {
+        method: String,
+    },
+
     // -- Login
     LoginFailUsernameNotFound,
     LoginFailPasswordMismatch {
@@ -25,6 +37,10 @@ pub enum Error {
     Model(model::Error),
     #[from]
     Crypt(crypt::Error),
+
+    // -- External Modules
+    #[from]
+    SerdeJson(#[serde_as(as = "DisplayFromStr")] serde_json::Error),
 }
 
 // region:    --- Axum IntoResponse
@@ -70,6 +86,11 @@ impl Error {
             // -- Auth
             CtxExt(_) => (StatusCode::FORBIDDEN, ClientError::NO_AUTH),
 
+            Model(model::Error::EntityNotFound { entity, id }) => (
+                StatusCode::NOT_FOUND,
+                ClientError::ENTITY_NOT_FOUND { entity, id: *id },
+            ),
+
             // -- Fallback.
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -79,11 +100,13 @@ impl Error {
     }
 }
 
-#[derive(Debug, strum_macros::AsRefStr)]
+#[derive(Debug, Serialize, strum_macros::AsRefStr)]
+#[serde(tag = "message", content = "detail")]
 #[allow(non_camel_case_types)]
 pub enum ClientError {
     LOGIN_FAIL,
     NO_AUTH,
+    ENTITY_NOT_FOUND { entity: &'static str, id: i64 },
     SERVICE_ERROR,
 }
 // endregion: --- Client Error
