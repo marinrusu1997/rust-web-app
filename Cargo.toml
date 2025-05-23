@@ -1,38 +1,18 @@
-[package]
-name = "rust-web-app"
-version = "0.1.0"
-edition = "2024"
+[workspace.lints.rust]
+unsafe_code = "forbid"
+# unused = "allow" # For experimental development
 
-[dependencies]
-tokio = { version = "1.44.2", features = ["full"] }
-# -- Json
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-serde_with = "3.12.0"
-# -- Web
-axum = "0.8.4"
-tower-http = { version = "0.6.2", features = ["fs"] }
-tower-cookies = "0.11.0"
-# -- Data
-sqlx = { version = "0.8.5", features = ["runtime-tokio-rustls", "postgres", "uuid", "time"] }
-sea-query = "0.32.5"
-sea-query-binder = { version = "0.7.0", features = ["sqlx-postgres", "with-uuid", "with-time"] }
-modql = { version = "0.4.1", features = ["with-sea-query"] }
-# -- Tracing
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
-# -- Crypto & Encoding
-rand = "0.9.1"
-hmac = "0.13.0-pre.5"
-sha2 = "0.11.0-pre.5"
-base64-url = "3.0.0"
-# -- Others
-uuid = { version = "1.16.0", features = ["v4", "fast-rng"] }
-time = "0.3.41"
-strum_macros = "0.27.1"
-derive_more = { version = "2.0.1", features = ["from"] }
+[workspace]
+resolver = "2"
+members = [
+    # -- Application Libraries
+    "crates/libs/lib-utils", # e.g., base64, time.
+    "crates/libs/lib-rpc", # e.g., rpc routing.
+    "crates/libs/lib-auth", # e.g., for pwd, token.
+    "crates/libs/lib-core", # e.g., model, ctx, config.
 
-[dev-dependencies]
-anyhow = "1.0.98"
-httpc-test = "0.1.10"
-serial_test = "3.2.0"
+    # -- Application Services
+    "crates/services/web-server", "crates/tools/gen-key",
+    # -- Tools
+    "crates/tools/gen-key",
+]
