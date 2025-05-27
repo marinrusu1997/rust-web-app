@@ -2,7 +2,7 @@ use crate::web::{self, Error, Result, remove_token_cookie};
 use axum::extract::State;
 use axum::routing::post;
 use axum::{Json, Router};
-use lib_auth::pwd::{self, ContentToHash};
+use lib_auth::pwd::{self, ContentToHash, SchemeStatus};
 use lib_core::ctx::Ctx;
 use lib_core::model::ModelManager;
 use lib_core::model::user::{UserBmc, UserForLogin};
@@ -38,14 +38,21 @@ async fn api_login_handler(
         .ok_or(Error::LoginFailUsernameNotFound)?;
     let user_id = user.id;
 
-    pwd::validate_pwd(
-        &ContentToHash {
+    let scheme_status = pwd::validate_pwd(
+        ContentToHash {
             salt: user.password_salt,
             content: pwd_clear.clone(),
         },
         &user.password,
     )
+    .await
     .map_err(|_| Error::LoginFailPwdNotMatching { user_id })?;
+
+    // -- Update password scheme if needed.
+    if let SchemeStatus::Outdated = scheme_status {
+        debug!("Upgrading password scheme");
+        UserBmc::update_password(&root_ctx, &mm, user_id, &pwd_clear).await?;
+    }
 
     // -- Set web token.
     web::set_token_cookie(&cookies, &user.username, user.token_salt)?;

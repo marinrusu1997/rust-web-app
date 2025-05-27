@@ -100,10 +100,11 @@ impl UserBmc {
         let db = mm.db();
 
         let user: UserForLogin = Self::get(ctx, mm, id).await?;
-        let password = hash_pwd(&ContentToHash {
+        let password = hash_pwd(ContentToHash {
             content: password_clear.to_string(),
             salt: Uuid::from(user.password_salt),
-        })?;
+        })
+        .await?;
 
         let mut query = Query::update();
         query
