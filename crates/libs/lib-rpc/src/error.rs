@@ -6,15 +6,13 @@ use serde_with::{DisplayFromStr, serde_as};
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[serde_as]
-#[derive(Debug, Serialize, From)]
+#[derive(Debug, From, Serialize)]
 pub enum Error {
+    MissingCtx,
+
+    // -- RPC Router
     RpcMethodUnknown(String),
-    RpcMissingParams {
-        rpc_method: String,
-    },
-    RpcFailJsonParams {
-        rpc_method: String,
-    },
+    RpcIntoParamsMissing,
 
     // -- Modules
     #[from]
