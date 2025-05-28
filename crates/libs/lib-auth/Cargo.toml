@@ -21,6 +21,8 @@ hmac = "0.12.1"
 sha2 = "0.10.9"
 # -- Hashing (pwd-scheme02)
 argon2 = { version = "0.5.3", features = ["std"] }
+# -- Hashing (pwd-scheme03)
+blake3 = "1.8.2"
 # -- Others
 uuid = { version = "1.17.0", features = ["v4", "fast-rng", ] }
 lazy-regex = "3.4.1"
